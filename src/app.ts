@@ -1,82 +1,52 @@
-let app = require('express')();
-let http = require('http').createServer(app);
-let io = require('socket.io')(http);
-let CryptoTS = require("crypto-ts");
+import express from 'express';
+import http from 'http';
+import socketio from 'socket.io';
 
-interface Messages {
-    user_id: number,
-    username: string,
-    message_id: number,
-    message: string,
-}
+import UserList from './Models/UserList';
+import MessageList from './Models/MessageList';
+import User from './Models/User';
 
-interface User {
-    user_id: number
-    name: string,
-    session: string
-}
+const events = require('./SocketEvents.json');
 
-let messages:Array<Messages> = [];
-let users:Array<User> = [];
-let user_actual_id:number = 1;
-let message_actual_id:number = 1;
+const app = express();
+const server = http.createServer(app);
+const io = socketio(server);
+
+let messages = new MessageList();
+let users = new UserList();
+
 
 // Socket Events
-io.on('connection', function (socket: SocketIO.Socket) {
-    let user_obj:User = {
-        user_id: user_actual_id,
-        name: '',
-        session: CryptoTS.AES.encrypt(''+user_actual_id, "teste").toString(),
-    };
-    console.log(users);
-
-    socket.on('register by token', function (session: string) {
-        user_obj = users.filter(item => item.session == session)[0];
+io.on(events.CONNECTION, function (socket: SocketIO.Socket) {
+    let actual_user: User;
+    
+    socket.on(events.REGISTER_BY_TOKEN, function (session: string) {
+        actual_user = users.returnLogin(session);
     });
 
     socket.on('register username', function (username: string) {
-        user_obj = {
-            user_id: user_actual_id,
-            name: username,
-            session: CryptoTS.AES.encrypt(username+user_actual_id, "teste").toString(),
-        };
-        user_actual_id++;
-
-        user_obj.name = username;
-        console.log(user_obj.name + ' connected');
-        if (user_obj.session) {
-            socket.emit('register username result', user_obj.session);
-        }
-        else {
-            socket.emit('register username result', '');
-        }
-
-        users.push(user_obj);
-
+        actual_user = users.userLogin({
+            username
+        });
+        socket.emit('register username result', actual_user.session);
         socket.broadcast.emit('new user connected');
     });
 
     socket.on('send new message', function (message: string) {
+        const new_message = messages.sendNewMessage(actual_user, message);
         
-        const message_obj:Messages = {
-            message: message,
-            message_id: message_actual_id,
-            user_id: user_obj.user_id,
-            username: user_obj.name
-        }
-        socket.broadcast.emit('new message', message_obj);
-        socket.emit('new message', message_obj);
-        message_actual_id++;
+        socket.broadcast.emit('new message', new_message);
+        socket.emit('new message', new_message);
 
     });
     
     // on disconnect
     socket.on('disconnect', function () {
-        console.log(user_obj.name + ' disconnected');
+        console.log('user disconnected');
     });    
 });
 
 // Run server
-http.listen(3001, function () {
+server.listen(3001, function () {
     console.log('server running on 127.0.0.1:3001');
 });
