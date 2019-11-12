@@ -4,7 +4,8 @@ let io = require('socket.io')(http);
 let CryptoTS = require("crypto-ts");
 
 interface Messages {
-    user_id: number
+    user_id: number,
+    username: string,
     message_id: number,
     message: string,
 }
@@ -22,26 +23,56 @@ let message_actual_id:number = 1;
 
 // Socket Events
 io.on('connection', function (socket: SocketIO.Socket) {
-    // New user
-    let username = 'Não definido!';
-    const user_obj:User = {
+    let user_obj:User = {
         user_id: user_actual_id,
-        name: username,
-        session: CryptoTS.AES.encrypt(username+user_actual_id, "teste").toString(),
+        name: '',
+        session: CryptoTS.AES.encrypt(''+user_actual_id, "teste").toString(),
     };
-    user_actual_id++;
+    console.log(users);
+
+    socket.on('register by token', function (session: string) {
+        user_obj = users.filter(item => item.session == session)[0];
+    });
+
     socket.on('register username', function (username: string) {
+        user_obj = {
+            user_id: user_actual_id,
+            name: username,
+            session: CryptoTS.AES.encrypt(username+user_actual_id, "teste").toString(),
+        };
+        user_actual_id++;
+
         user_obj.name = username;
         console.log(user_obj.name + ' connected');
-        socket.emit('register username success', user_obj.session);
+        if (user_obj.session) {
+            socket.emit('register username result', user_obj.session);
+        }
+        else {
+            socket.emit('register username result', '');
+        }
+
+        users.push(user_obj);
 
         socket.broadcast.emit('new user connected');
+    });
+
+    socket.on('send new message', function (message: string) {
+        
+        const message_obj:Messages = {
+            message: message,
+            message_id: message_actual_id,
+            user_id: user_obj.user_id,
+            username: user_obj.name
+        }
+        socket.broadcast.emit('new message', message_obj);
+        socket.emit('new message', message_obj);
+        message_actual_id++;
+
     });
     
     // on disconnect
     socket.on('disconnect', function () {
-        users = users.filter(item => item.user_id !== user_obj.user_id);
-        console.log(username + ' disconnected');
+        console.log(user_obj.name + ' disconnected');
     });    
 });
 
