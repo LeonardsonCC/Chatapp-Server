@@ -1,12 +1,24 @@
 import fs from 'fs';
-import { on } from './Events';
 
-export const onNewUser = () => {};
+const DB_FILE = './src/tmp/db.json';
 
-export const write = () => {
-  on('new user', (users: any) => {
-    fs.writeFile('./src/tmp/db.json', JSON.stringify(users), err => {
-      console.log(err);
+export const writeData = (data: any) => {
+  return new Promise((resolve, reject) => {
+    fs.writeFile(DB_FILE, JSON.stringify(data), err => {
+      reject('Falha ao escrever em arquivo');
+    });
+    resolve('Arquivo escrito com sucesso!');
+  });
+};
+
+export const readData = () => {
+  return new Promise((resolve, reject) => {
+    fs.readFile(DB_FILE, 'utf8', (err, data) => {
+      if (err) {
+        reject('Erro ao ler arquivo');
+      }
+      const jsonData = JSON.parse(data);
+      resolve(jsonData);
     });
   });
 };
