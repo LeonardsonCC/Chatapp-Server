@@ -20,8 +20,11 @@ export default class {
     let [UserFiltered] = [
       ...this.UsersList.filter(item => item.session == session),
     ];
-    emmit('new user', this.UsersList);
-    return UserFiltered;
+    if (UserFiltered) {
+      emmit('new user', this.UsersList);
+      return UserFiltered;
+    }
+    return null;
   };
 
   public userLogin = (user: User) => {

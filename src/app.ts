@@ -19,14 +19,20 @@ let users = new UserList();
 write();
 
 // Socket Events
-io.on(events.CONNECTION, function(socket: SocketIO.Socket) {
+io.on(events.CONNECTION, function (socket: SocketIO.Socket) {
   let actual_user: User;
 
-  socket.on(events.REGISTER_BY_TOKEN, function(session: string) {
-    actual_user = users.returnLogin(session);
+  socket.on(events.REGISTER_BY_TOKEN, function (session: string) {
+    let user_return = users.returnLogin(session);
+    if (user_return) {
+      actual_user = user_return;
+      socket.emit(events.REGISTER_BY_TOKEN_RESULT, true);
+    } else {
+      socket.emit(events.REGISTER_BY_TOKEN_RESULT, false);
+    }
   });
 
-  socket.on(events.REGISTER_USERNAME, function(username: string) {
+  socket.on(events.REGISTER_USERNAME, function (username: string) {
     actual_user = users.userLogin({
       username,
     });
@@ -34,7 +40,7 @@ io.on(events.CONNECTION, function(socket: SocketIO.Socket) {
     socket.broadcast.emit(events.NEW_USER_CONNECTED);
   });
 
-  socket.on(events.SEND_NEW_MESSAGE, function(message: string) {
+  socket.on(events.SEND_NEW_MESSAGE, function (message: string) {
     const new_message = messages.sendNewMessage(actual_user, message);
 
     socket.broadcast.emit(events.NEW_MESSAGE, new_message);
@@ -42,12 +48,12 @@ io.on(events.CONNECTION, function(socket: SocketIO.Socket) {
   });
 
   // on disconnect
-  socket.on(events.DISCONNECTED, function() {
+  socket.on(events.DISCONNECTED, function () {
     console.log('user disconnected');
   });
 });
 
 // Run server
-server.listen(3001, function() {
+server.listen(3001, function () {
   console.log('server running on 127.0.0.1:3001');
 });

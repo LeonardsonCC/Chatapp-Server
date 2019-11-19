@@ -2,9 +2,10 @@
     "CONNECTION": "connection",
     "DISCONNECTED": "disconnected",
     "REGISTER_BY_TOKEN": "register by token",
+    "REGISTER_BY_TOKEN_RESULT": "register by token result",
     "REGISTER_USERNAME": "register username",
     "REGISTER_USERNAME_RESULT": "register username result",
     "NEW_USER_CONNECTED": "new user connected",
     "SEND_NEW_MESSAGE": "send new message",
-    "NEW_MESSAGE":"new message"
+    "NEW_MESSAGE": "new message"
 }
