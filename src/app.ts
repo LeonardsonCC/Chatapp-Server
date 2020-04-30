@@ -34,9 +34,12 @@ io.on(events.CONNECTION, function (socket: SocketIO.Socket) {
       username,
       socket,
     });
-    socket.emit(events.REGISTER_USERNAME_RESULT, actual_user.session);
+    socket.emit(events.REGISTER_USERNAME_RESULT,
+        actual_user.session,
+        actual_user.username);
     socket.broadcast.emit(events.NEW_USER_CONNECTED);
   });
+
   socket.on(events.SEND_NEW_MESSAGE, function (message: string) {
     if (actual_user) {
       const new_message = messages.sendNewMessage(actual_user, message);
@@ -52,9 +55,7 @@ io.on(events.CONNECTION, function (socket: SocketIO.Socket) {
     if (users.UsersList !== undefined) {
         try {
           let user_disconnected = users.UsersList.filter(item => item.socket == socket)[0];
-
           console.log(`${user_disconnected.username} disconnect`);
-
           users.UsersList = users.UsersList.filter(item => item != user_disconnected);
         }
         catch (e) {
