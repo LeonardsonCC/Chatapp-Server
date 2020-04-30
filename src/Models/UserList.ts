@@ -1,6 +1,5 @@
 import { AES } from 'crypto-ts';
 import { emmit } from '../Core/Events';
-import { writeData } from '../Core/File';
 
 import User from './User';
 
@@ -14,12 +13,8 @@ const getId = () => {
 export default class {
   public UsersList: Array<User>;
 
-  public constructor(users?: Array<User> | any) {
-    let userListParam: Array<User> = [];
-    if (users) {
-      userListParam = users;
-    }
-    this.UsersList = userListParam;
+  public constructor() {
+    this.UsersList = [];
   }
 
   public returnLogin = (session: string) => {
@@ -27,7 +22,6 @@ export default class {
       ...this.UsersList.filter(item => item.session == session),
     ];
     if (UserFiltered) {
-      this.saveChanges();
       return UserFiltered;
     }
     return null;
@@ -39,17 +33,10 @@ export default class {
       this.UsersList.push(user);
     console.log(user.username + ' is now connected!');
 
-    this.saveChanges();
     return user;
   };
 
   public saveChanges = () => {
-    writeData(this.UsersList)
-      .then(result => {
-        console.log(result);
-      })
-      .catch(err => {
-        console.error(err);
-      });
+      return true;
   };
 }

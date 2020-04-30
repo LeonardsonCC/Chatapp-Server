@@ -16,7 +16,6 @@ export default class {
   }
 
   public sendNewMessage = (user: User, message: string) => {
-    console.log(user);
     const new_message: Message = {
       message_text: message,
       message_id: getId(),

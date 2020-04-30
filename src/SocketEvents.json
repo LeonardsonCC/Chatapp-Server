@@ -1,6 +1,6 @@
 {
     "CONNECTION": "connection",
-    "DISCONNECTED": "disconnected",
+    "DISCONNECTED": "disconnect",
     "REGISTER_BY_TOKEN": "register by token",
     "REGISTER_BY_TOKEN_RESULT": "register by token result",
     "REGISTER_USERNAME": "register username",

@@ -5,7 +5,6 @@ import socketio from 'socket.io';
 import UserList from './Models/UserList';
 import MessageList from './Models/MessageList';
 import User from './Models/User';
-import { readData } from './Core/File';
 
 const events = require('./SocketEvents.json');
 
@@ -15,17 +14,6 @@ const io = socketio(server);
 
 let messages = new MessageList();
 let users = new UserList();
-
-console.log('Carregando dados...');
-
-readData()
-  .then(data => {
-    users = new UserList(data);
-    console.log('Dados carregados!');
-  })
-  .catch(err => {
-    console.error(err);
-  });
 
 // Socket Events
 io.on(events.CONNECTION, function (socket: SocketIO.Socket) {
@@ -44,6 +32,7 @@ io.on(events.CONNECTION, function (socket: SocketIO.Socket) {
   socket.on(events.REGISTER_USERNAME, function (username: string) {
     actual_user = users.userLogin({
       username,
+      socket,
     });
     socket.emit(events.REGISTER_USERNAME_RESULT, actual_user.session);
     socket.broadcast.emit(events.NEW_USER_CONNECTED);
@@ -60,7 +49,18 @@ io.on(events.CONNECTION, function (socket: SocketIO.Socket) {
 
   // on disconnect
   socket.on(events.DISCONNECTED, function () {
-    console.log('user disconnected');
+    if (users.UsersList !== undefined) {
+        try {
+          let user_disconnected = users.UsersList.filter(item => item.socket == socket)[0];
+
+          console.log(`${user_disconnected.username} disconnect`);
+
+          users.UsersList = users.UsersList.filter(item => item != user_disconnected);
+        }
+        catch (e) {
+          console.log(e);
+        }
+    }
   });
 });
 
